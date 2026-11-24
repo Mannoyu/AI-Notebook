@@ -6,6 +6,10 @@
 
 ## 功能演示
 
+[![离线笔记助手演示封面：左侧为 Markdown 笔记，右侧为 AI 分析](docs/media/ai-notebook-demo.jpg)](docs/media/ai-notebook-demo.mp4)
+
+[观看 33 秒演示（MP4）](docs/media/ai-notebook-demo.mp4)：编辑与预览 Markdown、在本机流式生成分析、导出 `.md`。视频使用虚构笔记和已缓存的模型，推理等待片段已加速。
+
 1. 新建笔记，或导入 UTF-8 编码的 `.txt` / `.md` 文件。正文自动保存，可切换 Markdown 编辑与预览。
 2. 打开「离线模型」菜单。浏览器通过 WebGPU、`shader-f16` 和可估算的存储空间检查后，可手动下载约 1.4 GB 的模型。通过本机试跑才显示就绪。
 3. 点击「分析笔记」。宽屏下左侧保留原文，右侧先后流式展示原文总结与模型补充；分析过程中仍可编辑笔记。
