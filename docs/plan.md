@@ -17,7 +17,7 @@
 - `Note`：`id`、`title`、`body`、`bodyRevision`、`createdAt`、`updatedAt`。正文提交变化时递增 `bodyRevision`；修改标题更新排序时间，但不让基于正文的分析失效。
 - `Analysis`：`noteId`、`sourceRevision`、`summaryMarkdown`、`supplementsMarkdown`、`modelRevision`、`createdAt`。每篇仅保存最近一次成功结果；`sourceRevision` 与当前 `bodyRevision` 不同即为过时。提交结果时验证笔记仍存在；删除笔记与删除关联结果在同一事务中完成。
 - `ModelManifest`：固定模型标识、不可变版本、下载来源、预计下载字节数。在线入口提供清单，当前部署所需清单随离线网页资源保存；本地检查和分析不得强制联机刷新清单。
-- Worker 请求使用 `requestId` 匹配响应。分析任务接收正文和对应版本的快照，返回进度、成功结果或失败状态。并发先限制为一个推理任务；切换笔记不改变正在分析的快照。
+- Worker 请求使用 `requestId` 匹配响应。分析任务接收正文快照，返回分段进度、可见文本草稿和最终结果或失败状态。`TextStreamer` 过滤推理标记后分批发送当前阶段的累计文本；新的分段替换上一段草稿，补充阶段保留最终总结。并发限制为一个推理任务；界面按笔记 ID 和启动时的正文版本关联草稿，只有最终结果进入本地存储。
 - UI 分别维护网页离线状态、笔记保存状态和 AI 状态。AI 状态为检测中、不可用、可下载、下载中、试跑中、就绪或失败；重开后按本地资源和实际加载结果复核，不信任单独的「已下载」标记。
 
 ## 关键流程

@@ -5,6 +5,7 @@ import { modelCache, modelManifest } from './model';
 
 type Phase = 'checking' | 'unavailable' | 'downloadable' | 'loading' | 'warming' | 'ready' | 'failed';
 type Output = { summary: string; supplement: string };
+export type AnalysisPreview = Output & { status: string; rolling: boolean; phase: 'summary' | 'supplement' };
 type Reply = { requestId: string; status: string; value?: unknown };
 const marker = `${modelCache}:${modelManifest.revision}`;
 
@@ -12,7 +13,6 @@ export function useModel(offlineReady: boolean) {
   const [phase, setPhase] = useState<Phase>('checking');
   const [detail, setDetail] = useState('');
   const [progress, setProgress] = useState(0);
-  const [analysisProgress, setAnalysisProgress] = useState('');
   const worker = useRef<Worker | undefined>(undefined);
   const started = useRef(false);
 
@@ -78,15 +78,23 @@ export function useModel(offlineReady: boolean) {
     })();
   }, [offlineReady]);
 
-  async function analyze(body: string) {
-    setAnalysisProgress('准备分析…');
-    try {
-      return await request('analyze', { body }, (reply) => {
-        if (reply.status === 'section') setAnalysisProgress(`整理原文 · ${reply.value}%`);
-        if (reply.status === 'supplement') setAnalysisProgress('正在生成补充…');
-      }) as Output;
-    } finally { setAnalysisProgress(''); }
+  function analyze(body: string, onPreview: (preview: AnalysisPreview) => void) {
+    let preview: AnalysisPreview = { summary: '', supplement: '', status: '准备分析…', rolling: false, phase: 'summary' };
+    onPreview(preview);
+    return request('analyze', { body }, (reply) => {
+      if (reply.status === 'section') {
+        const { progress, final } = reply.value as { progress: number; final: boolean };
+        preview = { ...preview, summary: '', status: final ? '正在生成总结…' : `正在整理原文 · 已读 ${progress}%`, rolling: !final };
+      } else if (reply.status === 'summary-text') {
+        preview = { ...preview, summary: String(reply.value) };
+      } else if (reply.status === 'supplement') {
+        preview = { ...preview, summary: String(reply.value), status: '正在生成补充…', phase: 'supplement' };
+      } else if (reply.status === 'supplement-text') {
+        preview = { ...preview, supplement: String(reply.value) };
+      } else return;
+      onPreview(preview);
+    }) as Promise<Output>;
   }
 
-  return { phase, detail, progress, analysisProgress, download: () => load(true), analyze };
+  return { phase, detail, progress, download: () => load(true), analyze };
 }

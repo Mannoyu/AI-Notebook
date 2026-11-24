@@ -1,10 +1,10 @@
 'use client';
 
-import { ArrowLeft, Cpu, Download, FileText, MoreHorizontal, Plus, Upload } from 'lucide-react';
+import { ArrowLeft, Cpu, Download, FileText, MoreHorizontal, Plus, Sparkles, Upload } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import Markdown from 'react-markdown';
 import { deleteNote, exportNote, listNotes, saveNote, type Note } from './notes';
-import { useModel } from './use-model';
+import { useModel, type AnalysisPreview } from './use-model';
 
 const timeFormat = new Intl.DateTimeFormat('zh-CN', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
 const dateFormat = new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -23,7 +23,7 @@ export function Workspace() {
   const [error, setError] = useState('');
   const [dialog, setDialog] = useState<'rename' | 'delete'>();
   const [offlineReady, setOfflineReady] = useState(false);
-  const [running, setRunning] = useState(false);
+  const [job, setJob] = useState<{ noteId: string; revision: number; preview: AnalysisPreview }>();
   const model = useModel(offlineReady);
   const latestNotes = useRef<Note[]>([]);
   const storageQueue = useRef<Promise<unknown>>(Promise.resolve());
@@ -31,6 +31,9 @@ export function Workspace() {
   const fileInput = useRef<HTMLInputElement>(null);
   const modal = useRef<HTMLDialogElement>(null);
   const current = notes.find((note) => note.id === selected);
+  const currentJob = job && job.noteId === current?.id ? job : undefined;
+  const preview = currentJob?.preview;
+  const analysis = currentJob ? { revision: currentJob.revision, ...currentJob.preview } : current?.analysis;
 
   useEffect(() => {
     if (process.env.NODE_ENV !== 'production' || !('serviceWorker' in navigator)) return;
@@ -87,14 +90,13 @@ export function Workspace() {
   }
 
   async function runAnalysis(note: Note) {
-    setRunning(true);
     try {
-      const result = await model.analyze(note.body);
+      const result = await model.analyze(note.body, (preview) => setJob({ noteId: note.id, revision: note.revision, preview }));
       const latest = latestNotes.current.find((item) => item.id === note.id);
       if (latest) persist({ ...latest, analysis: { revision: note.revision, ...result } });
     } catch (error) {
       setError(`分析失败，旧结果未改动。${error instanceof Error ? error.message : ''}`);
-    } finally { setRunning(false); }
+    } finally { setJob(undefined); }
   }
 
   const groups = new Map<string, Note[]>();
@@ -122,15 +124,28 @@ export function Workspace() {
           </div></details>
         </div>
       </div>
-      <section className="sheet" aria-labelledby="note-title">
-        <p className="sheet-label">当前笔记</p><h1 id="note-title">{current.title}</h1>
-        {editing ? <textarea key={current.id} aria-label="Markdown 正文" autoFocus value={current.body} onChange={(event) => persist({ ...current, body: event.target.value, revision: current.revision + 1, updated: Date.now() })} placeholder="写下你的笔记…" /> : <article className="markdown">{current.body.trim() ? <SafeMarkdown text={current.body} /> : <p className="status">还没有正文</p>}</article>}
-      </section>
-      <p className="status" role="status">{status || 'Markdown 文档'}</p>
-      <details className="analysis-panel" key={current.id}><summary>AI 分析</summary>
-        <div className="toolbar"><span className="status" role="status">{model.analysisProgress || (model.phase === 'ready' ? '本机处理' : '离线模型尚未就绪')}</span><button className="button primary" disabled={model.phase !== 'ready' || running || !current.body.trim()} onClick={() => void runAnalysis(current)}>{current.analysis ? '重新分析' : '分析笔记'}</button></div>
-        {current.analysis && <div className="markdown">{current.analysis.revision !== current.revision && <p className="stale">基于修改前的笔记</p>}<h3>原文总结</h3><SafeMarkdown text={current.analysis.summary} /><h3>模型补充</h3><p className="status">未经联网核验</p><SafeMarkdown text={current.analysis.supplement} /></div>}
-      </details>
+      <div className="editor-columns">
+        <div className="note-column">
+          <section className="sheet" aria-labelledby="note-title">
+            <p className="sheet-label">当前笔记</p><h1 id="note-title">{current.title}</h1>
+            {editing ? <textarea key={current.id} aria-label="Markdown 正文" autoFocus value={current.body} onChange={(event) => persist({ ...current, body: event.target.value, revision: current.revision + 1, updated: Date.now() })} placeholder="写下你的笔记…" /> : <article className="markdown">{current.body.trim() ? <SafeMarkdown text={current.body} /> : <p className="status">还没有正文</p>}</article>}
+          </section>
+          <p className="status" role="status">{status || 'Markdown 文档'}</p>
+        </div>
+        <aside className="analysis-panel" key={current.id} aria-labelledby="analysis-title">
+          <header className="analysis-header">
+            <div className="toolbar"><h2 id="analysis-title">AI 分析</h2><button className="button primary" disabled={model.phase !== 'ready' || !!job || !current.body.trim()} onClick={() => void runAnalysis(current)}><Sparkles size={16} aria-hidden="true" />{preview ? '分析中' : current.analysis ? '重新分析' : '分析笔记'}</button></div>
+            <p className="status analysis-status" role="status">{preview && <span className="activity-dot" aria-hidden="true" />}{preview?.status ?? (job ? '正在分析另一篇笔记' : model.phase === 'ready' ? (current.analysis ? '已完成 · 本机处理' : '本机处理') : '离线模型尚未就绪')}</p>
+          </header>
+          <div className="analysis-content">
+            {analysis ? <>
+              {analysis.revision !== current.revision && <p className="status stale">基于修改前的笔记</p>}
+              <section className="markdown"><h3>{preview?.rolling ? '分段摘要（草稿）' : '原文总结'}</h3>{analysis.summary ? <SafeMarkdown text={analysis.summary} /> : <p className="status">等待模型输出…</p>}</section>
+              {(!preview || preview.phase === 'supplement') && <section className="markdown"><h3>模型补充</h3><p className="status">未经联网核验</p>{analysis.supplement ? <SafeMarkdown text={analysis.supplement} /> : <p className="status">等待模型输出…</p>}</section>}
+            </> : <p className="status">{current.body.trim() ? '暂无分析结果' : '笔记暂无正文'}</p>}
+          </div>
+        </aside>
+      </div>
       {dialog && <dialog ref={(element) => { modal.current = element; if (element && !element.open) element.showModal(); }} aria-labelledby="dialog-title" onClose={(event) => {
         setDialog(undefined);
         if (event.currentTarget.returnValue !== 'confirm') return;
