@@ -32,9 +32,38 @@ button, textarea { font: inherit; color: inherit; }
 .sheet { margin: 14px 0; padding: 40px max(24px, 8%); min-height: 460px; border: 1px solid var(--line); border-radius: 4px; background: var(--paper); }
 .sheet h1 { font-size: 38px; margin-bottom: 20px; }
 .sheet textarea { display: block; width: 100%; min-height: 250px; padding: 0; border: 0; background: transparent; resize: vertical; }
+.sheet-label { color: var(--accent); font-size: 13px; font-weight: 700; margin-bottom: 10px; }
+.toolbar, .actions, .segment { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.toolbar { justify-content: space-between; }
+.segment { gap: 2px; }
+.segment button { border-color: transparent; }
+button[aria-pressed="true"] { background: var(--wash); color: var(--accent); }
+button:disabled { cursor: not-allowed; opacity: .6; }
+.date-group { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 20px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.date-group h2 { margin: 12px 0; font-size: 15px; color: var(--accent); }
+.entry { width: 100%; display: flex; align-items: center; justify-content: space-between; text-align: left; gap: 16px; background: transparent; border: 0; padding: 12px; cursor: pointer; }
+.entry:hover { background: var(--wash); }
+.entry + .entry { border-top: 1px solid var(--line); }
+.entry strong, .entry small { display: block; overflow-wrap: anywhere; }
+.entry small, .entry time { color: var(--muted); font-size: 14px; }
+.markdown { overflow-wrap: anywhere; }
+.markdown p { margin-block: .75em; }
+.markdown pre { overflow: auto; background: var(--background); padding: 12px; }
+.note-menu { position: relative; }
+.note-menu summary { list-style: none; }
+.note-menu summary::-webkit-details-marker { display: none; }
+.note-menu > div { position: absolute; z-index: 1; right: 0; padding: 4px; background: var(--paper); border: 1px solid var(--line); }
+.note-menu > div button { min-width: 100px; border: 0; }
+dialog { width: min(430px, calc(100% - 32px)); border: 1px solid var(--line); border-radius: 4px; padding: 24px; }
+dialog::backdrop { background: #24282e66; }
+dialog h2 { margin-top: 0; font-size: 22px; }
+dialog input { display: block; width: 100%; padding: 8px; font: inherit; border: 1px solid var(--line); }
+dialog .actions { justify-content: end; margin-top: 16px; }
+.error { width: min(100% - 40px, 1060px); margin: 16px auto; display: flex; align-items: center; justify-content: space-between; gap: 8px; color: #972626; }
 
 @media (max-width: 600px) {
   h1 { font-size: 36px; }
   .sheet h1 { font-size: 30px; }
   .sheet { padding-block: 28px; }
+  .date-group { grid-template-columns: 1fr; gap: 0; }
 }
