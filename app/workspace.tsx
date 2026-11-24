@@ -21,11 +21,21 @@ export function Workspace() {
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
   const [dialog, setDialog] = useState<'rename' | 'delete'>();
+  const [offlineReady, setOfflineReady] = useState(false);
   const storageQueue = useRef<Promise<unknown>>(Promise.resolve());
   const latestSave = useRef(0);
   const fileInput = useRef<HTMLInputElement>(null);
   const modal = useRef<HTMLDialogElement>(null);
   const current = notes.find((note) => note.id === selected);
+
+  useEffect(() => {
+    if (process.env.NODE_ENV !== 'production' || !('serviceWorker' in navigator)) return;
+    const update = () => setOfflineReady(!!navigator.serviceWorker.controller);
+    navigator.serviceWorker.addEventListener('controllerchange', update);
+    update();
+    void navigator.serviceWorker.register('/offline-worker.js').catch(() => undefined);
+    return () => navigator.serviceWorker.removeEventListener('controllerchange', update);
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -77,7 +87,7 @@ export function Workspace() {
   }
 
   return <>
-    <header className="site-header"><span className="wordmark"><FileText size={21} aria-hidden="true" />离线笔记</span><span className="status">浏览器本地</span></header>
+    <header className="site-header"><span className="wordmark"><FileText size={21} aria-hidden="true" />离线笔记</span><span className="status">{offlineReady ? '网页可离线使用' : '浏览器本地'}</span></header>
     {error && <p className="error" role="alert">{error}<button className="button" onClick={() => setError('')}>关闭</button></p>}
     {current ? <main className="editor">
       <div className="toolbar">
