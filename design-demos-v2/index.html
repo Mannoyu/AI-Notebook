@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>离线笔记 · 新版原型</title>
+<style>
+*{box-sizing:border-box} [hidden]{display:none!important}
+:root{font:16px/1.65 'Microsoft YaHei','PingFang SC',sans-serif;color-scheme:light}
+body{margin:0;background:var(--bg);color:var(--ink)}
+body[data-view="focus"]{--bg:#f4f5f7;--paper:#fff;--ink:#24282e;--muted:#535d6b;--line:#d6dbe4;--accent:#244bc5;--wash:#e8edfc;--unit:8px;--radius:4px}
+body[data-view="review"]{--bg:#e7eae4;--paper:#f6f8f3;--ink:#262825;--muted:#4c584e;--line:#bcc8bb;--accent:#386349;--wash:#dbe7d8;--unit:8px;--radius:4px}
+body[data-view="index"]{--bg:#ece6da;--paper:#f5efe4;--ink:#252421;--muted:#5e554d;--line:#baac9c;--accent:#a6382d;--wash:#e8d7c9;--unit:12px;--radius:0px}
+button,textarea{font:inherit;color:inherit} button{cursor:pointer} button:focus-visible,a:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:4px} button:disabled{cursor:not-allowed;opacity:.65}
+button{min-height:44px;padding:0 14px;border:1px solid transparent;border-radius:var(--radius);color:var(--ink);background:transparent;font-size:14px;font-weight:700}
+button:hover{background:var(--wash)} button[aria-pressed=true]{color:var(--accent);background:var(--wash)} .solid,.solid:hover{background:var(--accent);color:white}.solid:hover{filter:brightness(1.12)} .outline{border-color:var(--line)}
+h1,h2,h3,p{margin:0;text-wrap:pretty} h1{font-size:clamp(33px,4.5vw,64px);line-height:1.2;letter-spacing:-.06em} h2{font-size:22px;line-height:1.4} a{color:var(--accent)}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px clamp(14px,4.5vw,68px);border-bottom:1px solid var(--line)} .wordmark{display:flex;align-items:center;gap:10px;font-weight:800;white-space:nowrap}.wordmark svg{width:22px;height:22px;fill:none;stroke:var(--accent);stroke-width:1.5}.top nav{display:flex;gap:4px}.top small{color:var(--muted);font:13px Consolas,monospace;white-space:nowrap}.top button{white-space:nowrap}
+.page{margin-inline:auto;animation:arrive 160ms ease-out}.meta{font-size:13px;color:var(--muted);letter-spacing:.025em}.separator{border-top:1px solid var(--line)} .row{display:flex;justify-content:space-between;gap:12px;align-items:center}.kicker{color:var(--accent);font-size:13px;font-weight:750;letter-spacing:.12em}.switches{display:flex;gap:4px}.serif{font-family:'Noto Serif CJK SC','SimSun',serif}.body-copy{font-size:16px;line-height:1.85;overflow-wrap:anywhere}.body-copy h2{font-size:18px;margin:16px 0 4px}.body-copy p+p{margin-top:8px} .body-copy ul{margin:6px 0;padding-left:24px}
+.focus{max-width:1040px;padding:25px 36px 32px}.focus-tools{margin:0 0 13px}.focus-tools>div:first-child{position:relative}.focus .sheet{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);min-height:487px;padding:clamp(24px,5vw,57px) clamp(20px,8vw,115px) 24px;position:relative}.focus .sheet::before{content:'';position:absolute;width:24px;height:2px;top:38px;left:0;background:var(--accent)}.focus .sheet h1{margin:10px 0 12px}.focus .sheet .body-copy{margin-top:21px}.focus textarea{margin-top:21px}.focus .bottom{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}.focus .bottom-panel{border:1px solid var(--line);border-radius:var(--radius);margin-top:8px;padding:24px;background:var(--paper)}
+.popover{position:absolute;z-index:3;top:calc(100% + 8px);left:0;width:min(310px,calc(100vw - 56px));background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 12px 36px #24282e20;padding:8px}.popover button{width:100%;text-align:left}.popover .meta{padding:6px 14px}
+.review{max-width:1100px;padding:31px 38px 42px}.review .mast{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:20px;border-bottom:2px solid var(--ink);padding-bottom:20px}.review h1{font-size:clamp(33px,4.6vw,62px);margin-top:7px}.review .canvas{margin-top:0}.review .band{display:grid;grid-template-columns:145px minmax(0,1fr);gap:24px;border-bottom:1px solid var(--line);padding:18px 0}.review .band h2{font-size:17px}.review .band .meta{margin-top:4px}.review .band .body-copy{max-width:760px}.review .band.analysis{background:var(--wash);padding-inline:14px;grid-template-columns:131px minmax(0,1fr)}.review .actions{padding-top:13px}.review .source article{columns:2;column-gap:28px}.review .source article h2{break-after:avoid}.review .source article p{break-inside:avoid}
+.index{max-width:1160px;padding:35px 44px 42px}.index h1{font-size:clamp(45px,7vw,92px)}.index .mast{align-items:end;padding-bottom:22px;border-bottom:2px solid var(--ink)}.index .mast p{margin-top:10px}.index .mast button{min-width:94px}.index .timeline{margin-top:6px}.index .date-group{display:grid;grid-template-columns:155px minmax(0,1fr);gap:24px;border-bottom:1px solid var(--line);padding:14px 0}.date-label{align-self:start;padding-top:8px;font:600 25px/1.2 Consolas,monospace;color:var(--accent)}.date-label small{display:block;margin-top:6px;color:var(--muted);font:13px 'Microsoft YaHei',sans-serif}.index .entry{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;width:100%;padding:10px 14px;text-align:left}.entry+.entry{border-top:1px solid var(--line)}.entry strong{display:block;font-size:21px;line-height:1.4}.entry .meta{display:block;margin-top:3px;font-weight:400}.entry time{font:14px Consolas,monospace;color:var(--muted)}.index .note-page{max-width:820px;margin:0 auto}.index .note-page h1{font-size:clamp(34px,5vw,68px);margin:10px 0 20px}.index .note-page .body-copy{margin:20px 0}.index .note-page details{border-top:1px solid var(--line);padding:14px 0}.index .note-page summary{cursor:pointer;min-height:44px;font-weight:700}
+.result{display:grid;gap:12px}.result h3{font-size:16px;margin-bottom:3px}.result p{font-size:16px}.notice{display:inline-block;color:var(--accent);background:var(--paper);font-weight:700;padding:3px 7px;font-size:13px}.status{font-size:13px;color:var(--muted)}
+textarea{width:100%;min-height:245px;resize:vertical;padding:12px;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);line-height:1.75}.focus textarea{padding:0;border:0;background:none;min-height:260px}.short{resize:vertical}.end{margin-top:18px}
+@keyframes arrive{from{opacity:.7;transform:translateY(3px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.page{animation:none}}
+@media(max-width:700px){.top{flex-wrap:wrap}.top nav{order:3;width:100%;justify-content:center}.top nav button{flex:1;padding:0 7px}.page{padding:18px 15px 30px}.review .mast{display:block}.review .mast button{margin-top:10px}.review .band,.review .band.analysis{grid-template-columns:1fr;gap:8px}.review .source article{columns:1}.index .date-group{grid-template-columns:1fr;gap:4px}.date-label small{display:inline;margin-left:7px}.index .mast{align-items:start}.index .mast button{min-width:0}.entry strong{font-size:18px}.focus .sheet::before{display:none}.row{flex-wrap:wrap}}
+</style>
+</head>
+<body data-view="focus">
+<header class="top">
+  <div class="wordmark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h11l3 3v15H5zM15 3v4h4M8 11h8m-8 4h8"/></svg>离线笔记</div>
+  <nav aria-label="切换原型方向"><button data-view="focus" aria-pressed="true">A 专注稿纸</button><button data-view="review" aria-pressed="false">B 对照校阅</button><button data-view="index" aria-pressed="false">C 日期索引</button></nav>
+  <small>布局原型 v0</small>
+</header>
+<main id="root"></main>
+<script>
+const notes = [
+  {title:'离线网页的三层缓存',date:'11.24',day:'周二',time:'14:28',summary:'把网页能打开、笔记还在、模型能分析分开验收。',body:'离线不只是网页能打开。笔记助手需要分别验证网页资源、笔记数据和模型缓存。\n\n## 网页壳\n断网重启后要访问同一个网址，不能只测试已经打开的标签页。\n\n## 笔记与模型\n即使模型缓存被清掉，笔记仍应能读写和导出。模型试跑成功后，用一篇新笔记验证离线分析。'},
+  {title:'Markdown 导入边界',date:'11.24',day:'周二',time:'11:09',summary:'从本机读取纯文本和 Markdown，保留原文。',body:'## 导入范围\n首版支持 UTF-8 的纯文本和 Markdown。每次导入创建一篇独立笔记，不覆盖现有内容。'},
+  {title:'React 渲染随记',date:'11.23',day:'周一',time:'20:16',summary:'区分渲染和提交，先从可观察的状态变化入手。',body:'## 从状态更新看起\n渲染计算下一版界面，提交阶段才把需要的变化写到页面。'},
+  {title:'周五产品复盘',date:'11.20',day:'周五',time:'16:40',summary:'首版先完成本地记笔记和分析。',body:'## 首版范围\n保留 Markdown、总结与补充。不做账号、云同步、英语和语音。'}
+];
+const root = document.querySelector('#root');
+const formats = document.querySelectorAll('nav button[data-view]');
+const escape = input => String(input).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+const markdown = raw => raw.trim().split(/\n\n+/).filter(Boolean).map(block => block.split('\n').map(line => /^## /.test(line) ? `<h2>${escape(line.slice(3))}</h2>` : `<p>${escape(line)}</p>`).join('')).join('') || '<p>这篇笔记还没有正文。</p>';
+let view = 'focus', active = 0, editing = true, indexOpen = false, listOpen = false, analysisOpen = false;
+const drafts = new Map();
+const example = '<div class="result"><section><h3>原文总结</h3><p>网页资源、笔记数据和模型缓存各有职责，离线验收时要分开检查。</p></section><section><h3>模型补充</h3><p>可单独清理模型缓存，确认网页和笔记不受影响。</p><span class="meta">示例内容，未经联网核验</span></section></div>';
+const menu = () => `<div class="popover" ${listOpen?'':'hidden'}><p class="meta">最近编辑</p>${notes.map((note,index)=>`<button data-note="${index}" aria-pressed="${index===active}">${escape(note.title)}</button>`).join('')}</div>`;
+const mode = () => `<div class="switches" aria-label="正文视图"><button data-action="edit" aria-pressed="${editing}">编辑</button><button data-action="preview" aria-pressed="${!editing}">预览</button></div>`;
+const content = body => editing ? `<textarea aria-label="笔记正文" id="draft">${escape(body)}</textarea>` : `<article class="body-copy">${markdown(body)}</article>`;
+function render(){
+  document.body.dataset.view = view;
+  formats.forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.view===view)));
+  const note = notes[active];
+  const body = drafts.get(active) ?? note.body;
+  const safeTitle = escape(note.title);
+  if(view==='focus'){
+    root.innerHTML=`<div class="page focus"><div class="row focus-tools"><div><button class="outline" data-action="list" aria-expanded="${listOpen}">笔记列表 ⌄</button>${menu()}</div><div>${mode()}</div></div><section class="sheet" aria-labelledby="note-title"><p class="kicker">当前笔记</p><h1 id="note-title" class="serif">${safeTitle}</h1><p class="meta">${note.date.replace('.', ' 月 ')} 日 · Markdown</p>${content(body)}</section><div class="row bottom"><span class="status" id="draft-status">${drafts.has(active)?'原型草稿仅保留在本页':'原型示例 · 未连接模型'}</span><button class="outline" data-action="analysis" aria-expanded="${analysisOpen}">${analysisOpen?'收起分析':'展开示例分析'}</button></div><section class="bottom-panel" ${analysisOpen?'':'hidden'}>${active===0?example:'<p class="status">这篇笔记暂无示例分析。</p>'}</section></div>`;
+  }else if(view==='review'){
+    root.innerHTML=`<div class="page review"><div class="mast"><div><p class="kicker">笔记 / 校阅</p><h1>${safeTitle}</h1></div><button class="outline" data-action="review-note">返回编辑</button></div><div class="canvas"><section class="band source"><div><h2>原文</h2><p class="meta">当前正文</p></div><article class="body-copy">${markdown(body)}</article></section><section class="band analysis"><div><h2>总结</h2><p class="meta">源自笔记</p></div><div class="body-copy">${active===0?'<span class="notice">示例：基于修改前的笔记</span><p>离线能力分三层验收：网页能打开、笔记仍可读写、模型仍可继续分析。</p>':'<p>暂无示例总结。</p>'}</div></section><section class="band"><div><h2>补充</h2><p class="meta">未经联网核验</p></div><div class="body-copy"><p>${active===0?'额外测一次只丢失模型缓存的情形，避免把分析失败误判为笔记丢失。':'暂无示例补充。'}</p></div></section><div class="row actions"><span class="status" id="review-status" role="status">原型示例 · 未连接模型</span><button class="solid" data-action="simulate">重新分析</button></div></div></div>`;
+  }else if(indexOpen){
+    root.innerHTML=`<div class="page index"><div class="note-page"><div class="row"><button class="outline" data-action="back">返回日期索引</button>${mode()}</div><h1 class="serif">${safeTitle}</h1><div class="separator"></div>${content(body)}<details class="end"><summary>查看示例分析</summary>${active===0?example:'<p class="status">这篇笔记暂无示例分析。</p>'}</details></div></div>`;
+  }else{
+    const dates = [...new Set(notes.map(item=>item.date))];
+    root.innerHTML=`<div class="page index"><div class="row mast"><div><h1 class="serif">笔记索引</h1><p class="meta">按最近编辑排列 · ${notes.length} 篇示例笔记</p></div><button class="solid" data-action="new">新建笔记</button></div><div class="timeline">${dates.map(date=>`<section class="date-group"><h2 class="date-label">${date}<small>${notes.find(item=>item.date===date).day}</small></h2><div>${notes.map((item,index)=>item.date===date?`<button class="entry" data-note="${index}"><span><strong>${escape(item.title)}</strong><span class="meta">${escape(item.summary)}</span></span><time>${item.time}</time></button>`:'').join('')}</div></section>`).join('')}</div></div>`;
+  }
+}
+formats.forEach(button=>button.addEventListener('click',()=>{view=button.dataset.view;editing=view==='focus';listOpen=false;indexOpen=false;analysisOpen=false;render();}));
+root.addEventListener('input',event=>{if(event.target.id==='draft'){drafts.set(active,event.target.value);const status=document.querySelector('#draft-status');if(status)status.textContent='原型草稿仅保留在本页';}});
+root.addEventListener('click',event=>{
+  const button=event.target.closest('button');if(!button)return;
+  if(button.dataset.note!==undefined){active=Number(button.dataset.note);listOpen=false;indexOpen=true;analysisOpen=false;render();if(view==='index')root.querySelector('[data-action="back"]').focus();return;}
+  const action=button.dataset.action;
+  if(action==='simulate'){
+    const status=document.querySelector('#review-status');status.textContent='这是布局原型，尚未接入模型。';return;
+  }
+  if(action==='list')listOpen=!listOpen;
+  if(action==='analysis')analysisOpen=!analysisOpen;
+  if(action==='back'){indexOpen=false;editing=false;}
+  if(action==='edit'||action==='preview')editing=action==='edit';
+  if(action==='review-note'){view='focus';editing=true;}
+  if(action==='new'){view='focus';active=notes.length;notes.push({title:'未命名笔记',date:'11.24',day:'周二',time:'现在',summary:'新增的原型草稿',body:''});editing=true;}
+  render();
+  if(editing&&(action==='edit'||action==='new'||action==='review-note'))document.querySelector('#draft')?.focus();
+  else root.querySelector(`[data-action="${action}"]`)?.focus();
+});
+root.addEventListener('keydown',event=>{if(event.key==='Escape'&&listOpen){listOpen=false;render();root.querySelector('[data-action="list"]').focus();}});
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+:root {
+  color-scheme: light;
+  --background: #f4f5f7;
+  --paper: #fff;
+  --ink: #24282e;
+  --muted: #535d6b;
+  --line: #d6dbe4;
+  --accent: #244bc5;
+  --wash: #e8edfc;
+  font: 16px/1.65 'Microsoft YaHei', 'PingFang SC', sans-serif;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--background); color: var(--ink); }
+h1, p { margin: 0; }
+h1 { font: 700 52px/1.2 'Noto Serif CJK SC', SimSun, serif; overflow-wrap: anywhere; }
+button, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.site-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 18px 5%; border-bottom: 1px solid var(--line); }
+.wordmark, .button { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; }
+.wordmark svg { color: var(--accent); }
+.status { color: var(--muted); font-size: 14px; }
+.button { min-height: 44px; padding: 0 14px; border: 1px solid var(--line); border-radius: 4px; background: transparent; cursor: pointer; font-size: 14px; }
+.button:hover { background: var(--wash); }
+.primary { background: var(--accent); border-color: var(--accent); color: white; }
+.primary:hover { background: #1c3d9f; }
+.index, .editor { width: min(100% - 40px, 1060px); margin: 36px auto; }
+.index-heading { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 18px; padding-bottom: 24px; border-bottom: 2px solid var(--ink); }
+.index-heading .status { margin-top: 8px; }
+.empty { padding: 24px 0; border-bottom: 1px solid var(--line); color: var(--muted); }
+.editor { max-width: 960px; }
+.sheet { margin: 14px 0; padding: 40px max(24px, 8%); min-height: 460px; border: 1px solid var(--line); border-radius: 4px; background: var(--paper); }
+.sheet h1 { font-size: 38px; margin-bottom: 20px; }
+.sheet textarea { display: block; width: 100%; min-height: 250px; padding: 0; border: 0; background: transparent; resize: vertical; }
+
+@media (max-width: 600px) {
+  h1 { font-size: 36px; }
+  .sheet h1 { font-size: 30px; }
+  .sheet { padding-block: 28px; }
+}
