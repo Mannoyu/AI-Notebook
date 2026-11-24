@@ -7,12 +7,19 @@ npm ci
 npm run dev
 ```
 
-开发入口为 `http://localhost:3000`。提交前运行 `npm run build` 和 `npm run typecheck`。
+开发入口为 `http://localhost:3000`。离线网页和端侧模型使用生产构建验证：
+
+```sh
+npm run build
+npm run typecheck
+npm start
+```
 
 ## 阶段交付
 
 - 在 `dev` 分支开发，每个阶段独立验证并提交后推送到 `origin/dev`，默认不改 `main`。
-- 第一阶段：应用骨架、钴蓝主题、日期索引和专注编辑的页面结构。只提供临时草稿，不声称已实现持久化、模型推理或断网重开。
-- 下一阶段：完成 T01 技术验证，用真实模型和生产构建验证 Ego 下载、试跑及系统断网重开。
+- 网页与笔记保存在当前浏览器配置和当前站点下。首次访问等待「网页可离线使用」后，可离线记笔记。清除站点数据或换一个端口都不会保留原站点的笔记。
+- AI 是可选功能。生产构建下，在「离线模型」菜单主动下载约 1.4 GB，试跑通过后才显示就绪。笔记不发送给服务端。
+- 实测情况与未通过的验收项见[验收记录](docs/acceptance.md)。
 
 详见[功能规范](docs/spec.md)、[技术设计](docs/plan.md)、[实施任务](docs/tasks.md)和[原型定稿](design-selected/direction-approved.md)。

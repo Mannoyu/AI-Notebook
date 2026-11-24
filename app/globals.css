@@ -60,6 +60,12 @@ dialog h2 { margin-top: 0; font-size: 22px; }
 dialog input { display: block; width: 100%; padding: 8px; font: inherit; border: 1px solid var(--line); }
 dialog .actions { justify-content: end; margin-top: 16px; }
 .error { width: min(100% - 40px, 1060px); margin: 16px auto; display: flex; align-items: center; justify-content: space-between; gap: 8px; color: #972626; }
+.model-menu > div { width: min(290px, 80vw); padding: 12px; overflow-wrap: anywhere; }
+.model-menu .button { border: 1px solid var(--line); }
+.model-menu button, .model-menu progress { margin-top: 8px; }
+.analysis-panel { margin-top: 16px; padding: 12px 0; border-top: 1px solid var(--line); }
+.analysis-panel summary { cursor: pointer; font-weight: 700; padding: 10px 0; }
+.stale { color: #785018; }
 
 @media (max-width: 600px) {
   h1 { font-size: 36px; }
